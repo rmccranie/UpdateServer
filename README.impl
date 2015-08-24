@@ -1,0 +1,60 @@
+
+Assumptions:
+
+- The problem statement allowed a choice between operating systems (Windows or Linux) and languages
+  (python and/or C++).  I chose to implement in Linux (Centos 6.6 distribution) and C++.
+
+- The server determines whether the client is required to update or not.  Client will provide its
+  version number, but mechanism for server to command upgrade can be made to be more sophisticated
+  than "versions don't match" (though for initial implementation, this may be alli that's implemented).
+
+- URL for update can either be hard-coded or configurable (with preference given in my design for
+  configurable).  The term URL is deemed to imply lookup by "name". Name-server lookup for this app
+  will be facilitated using the /etc/hosts file.
+
+- Signaling will be accomplished using a protocol built on TCP. There are many alternatives (for example
+  use of a web server with signaling something like the TR-069 model). This is an area where I will likely
+  make use of something simple and purpose-built for this application.
+
+- Concerns such as load-balancing client requests will be mostly considered out of scope for this exercise.
+  Some attention will be paid scalability on the server end and use of a different upgrade URL for different
+  clients would offer some opportunity to load-balance.  For my implementation, scalability on the server 
+  piece will be considered the main concern.
+
+- The server will be designed to handle a "reasonable" number of clients. For now, this will be set at 10
+  clients (just because I need to know how many to start up).
+
+- The client will require some mechanism to facilitate download of update packages. For download, preference
+  will be given to something that 1) is separate in some way from the server (i.e., the Update Server's 
+  responsibility ends at deciding whether a client needs to upgrade or not and notifying it of the need), 
+  2) implemented in a simple, straightforward way, and 3) requires a minimum of special setup to 
+  be able to run the application.
+
+- For this implementation, client and server will be deployed on the same machine (though of course, this 
+  a trivial detail assuming use of network sockets).
+
+- No mention is made in the problem statement of ensuring authenticated updates. Some thought may be given
+  to this based on time needed for implementation.
+
+- Clients will need some means of determining how often to check in for updates. This can be hard-coded 
+  or configurable (preference given to configurable).
+
+Design:
+
+Client:
+
+- Polling rate, client version and upgrade URL will all be provisioned on clients via a downloaded
+  config file. Clients will request this config file at startup. No assumptions will be made about 
+  these parameters.
+
+- Clients will be started with a "serial number" at startup.  This serial number for now will just be
+  a number from 1 to 10. 
+
+Server:
+
+- The server will be built to separate the concerns of signaling/update determination and download.
+  I will need some simple way to facilitate that. I'd like to use something like an off-the-shelf
+  tftp server. Otherwise, I will consider spinning off a separate process to handle "firmware"
+  downloads.
+
+ 
