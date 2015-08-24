@@ -1,2 +1,21 @@
 # UpdateServer
 Update Server manages updates (firmware, config, etc.) for clients.
+
+Practical Coding Exercise
+
+Write a proof of concept updating mechanism. The code should be targeted at either Linux and/or Windows and can use Python 2.or above and/or C++. There should be two components - client and server. 
+
+The client should:
+a.	Query the server and provide its version number
+b.	If the server responds that an update is available, then it should download the update and apply it
+c.	The client should update itself
+
+The server should:
+d.	Listen on a TCP socket for update requests from the client
+e.	If it receives a request determine whether an update is needed or not depending on the client version
+f.	Respond to the client with an update URL or that no update is needed
+
+Options b and c may be either fully coded and tested (preferred) or presented as declarations.
+
+If you need to make assumptions to complete your work, please state what they are.
+
