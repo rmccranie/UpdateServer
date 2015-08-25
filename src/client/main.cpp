@@ -8,7 +8,7 @@ using namespace std;
 int main ()
 {
     UpdateClient *p = new UpdateClient() ;
-    //p->Run();
+    p->Run();
 
     return 0 ;
 }

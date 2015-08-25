@@ -9,7 +9,7 @@ int main ()
 {
     UpdateServer *p = new UpdateServer() ;
     Utils::loadIniFile() ;
-    //p->Run();
+    p->Run();
 
     return 0 ;
 }

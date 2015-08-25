@@ -6,23 +6,22 @@
 #include <sys/msg.h>
 #include <signal.h>
 #include <inttypes.h>
+#include <string>
 
 using namespace std;
 
-#define MSGSZ     128
+#define URL_SIZE     128
 
 //-- Define message structure.
-typedef enum CommandType   { start, stop, quit }    CommandType;
-typedef enum OperationType { simple, medium, hard } OperationType;
+typedef enum MessageType   { cs_updateAvailable, sc_doUpdate, sc_reloadIni }    MessageType;
+typedef enum UpdatePolicy  { odd_even, all } UpdatePolicy ;
 
 typedef struct message_buf
 {
     long          m_type;
-    OperationType op_type;
-    CommandType   cmd_type;
-    int           num1;
-    int           num2;
-    char          mtext[MSGSZ];
+    MessageType   msg_type;
+    int           clientVersion ;
+    char          url[URL_SIZE];
 } message_buf;
 
 

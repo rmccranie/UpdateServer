@@ -43,12 +43,13 @@ Design:
 
 Client:
 
-- Polling rate, client version and upgrade URL will all be provisioned on clients via a downloaded
-  config file. Clients will request this config file at startup. No assumptions will be made about 
-  these parameters.
+- Polling rate, client version and upgrade URL will all be provisioned on clients via responses from 
+  the server during client check-in for update. Clients will request this config data at startup. 
+  No assumptions will be made by the client about these parameters. This is to say that it's possible
+  to change some client parameters (like polling rate) when no update is available.
 
-- Clients will be started with a "serial number" at startup.  This serial number for now will just be
-  a number from 1 to 10. 
+- Clients will be started with a "serial number" at startup.  This serial number for simplicity will just 
+  be a number from 1 to 10. 
 
 Server:
 
@@ -57,4 +58,7 @@ Server:
   tftp server. Otherwise, I will consider spinning off a separate process to handle "firmware"
   downloads.
 
- 
+- Updates availability will be triggered on the server by use of a SIGHUP sent to the server process
+  (a standard convention) and will cause the server to reload its config/ini file.  The server must 
+  wait for clients to "check in" however before clients begin the update process. There is no mechanism
+  for the server to notify clients of change other than this. 

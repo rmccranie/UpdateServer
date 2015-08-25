@@ -4,9 +4,9 @@
 SOURCE=$(wildcard *.cpp) $(wildcard ../common/*.cpp)
  
 MYPROGRAM=updateServer
-MYINCLUDES=../common
+MYINCLUDES=../common -I.
 
-MYLIBRARIES=boost_filesystem-mt
+MYLIBRARIES=boost_filesystem-mt -lpthread
 CC=g++
 
 #------------------------------------------------------------------------------

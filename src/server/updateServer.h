@@ -20,13 +20,14 @@ public:
     int Run();
     static bool SetRunning (bool set) { running = set ; }
 private:
-    int children ;
+    int listenPort ;
     pid_t serverPid ;
     ofstream myFile ;
 //    ClientServerComms * cs_comms ;
     static bool running ;
      //-- Private functions
     bool UpdateAvailable() ;
+    static void *ClientHandler (void *) ;
     
 };
 
