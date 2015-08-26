@@ -24,7 +24,8 @@
 
 using namespace std;
 
-UpdateClient::UpdateClient ( ) 
+UpdateClient::UpdateClient ( int sn ) :
+clientSerialNum (sn)
 {
 
 }
@@ -49,6 +50,9 @@ void UpdateClient::HandleReceivedMessage ( message_buf * buf )
     case sc_doUpdate:
         cout << "Commanded to update.  UPDATING!" << endl ;
         DoUpdate( buf->clientVersion );
+        break ;
+    case sc_noUpdateAvailable:
+        cout << "No update available for this period." << endl ;
         break ;
     default:
         cout << "Invalid message type!" << endl ;
@@ -108,6 +112,7 @@ int UpdateClient::Run ()
 
     buffer.msg_type = cs_updateAvailable ;
     buffer.clientVersion = invalidVersion ; 
+    buffer.clientSerial = clientSerialNum ;
 
     if( (bytecount=send(hsock, &buffer, buffer_len,0))== -1){
         fprintf(stderr, "Error sending data %d\n", errno);
@@ -119,7 +124,7 @@ int UpdateClient::Run ()
         return 0 ;
     }
 
-    cout << "Received - msg_type: " << buffer.msg_type << ", version; " << buffer.clientVersion << endl ;
+    cout << "Received - msg_type: " << ClientServerComms::GetMessageTypeString(buffer.msg_type) << ", version; " << buffer.clientVersion << endl ;
 
     HandleReceivedMessage (&buffer) ;
     close(hsock);

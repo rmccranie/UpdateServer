@@ -28,6 +28,7 @@ private:
      //-- Private functions
     bool UpdateAvailable() ;
     static void *ClientHandler (void *) ;
+    void HandleMessage (ClientParams *, message_buf * ) ; 
     
 };
 

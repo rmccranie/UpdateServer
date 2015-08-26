@@ -20,6 +20,7 @@ typedef enum UpdatePolicy  { odd_even, all } UpdatePolicy ;
 typedef struct message_buf
 {
     MessageType   msg_type;
+    int           clientSerial ;
     int           clientVersion ;
     int           updateInterval ;
     char          url[URL_SIZE];

@@ -12,10 +12,11 @@ class UpdateClient
 {
 
 public: 
-    UpdateClient();
+    UpdateClient(int);
     int Run() ;
 
 private:
+    int clientSerialNum ;
     int currentVersion;
     int updateInterval ;
     ofstream myFile;
