@@ -12,6 +12,15 @@ using namespace std;
 const int timeout = 60 ;
 const int numberOfChildren = 10;
 
+class UpdateServer ;
+
+typedef struct thread_params
+{
+    int          * csock ;
+    UpdateServer * this1 ;
+} thread_params;
+
+
 class UpdateServer
 {
 public:
@@ -23,12 +32,11 @@ private:
     int listenPort ;
     pid_t serverPid ;
     ofstream myFile ;
-//    ClientServerComms * cs_comms ;
     static bool running ;
      //-- Private functions
     bool UpdateAvailable() ;
     static void *ClientHandler (void *) ;
-    void HandleMessage (ClientParams *, message_buf * ) ; 
+    void HandleMessage ( ClientParams *, message_buf * ) ; 
     
 };
 

@@ -1,5 +1,6 @@
 #include "client.h"
 #include "utils.h"
+#include "settings.h"
 #include <sys/prctl.h>
 #include <iostream>
 #include <fstream>
@@ -19,8 +20,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-
-
+#include <boost/filesystem.hpp>
 
 using namespace std;
 
@@ -73,6 +73,17 @@ int UpdateClient::Run ()
     int hsock;
     int * p_int;
     int err;
+
+
+    try 
+    {
+        std::stringstream fullPath ;
+        fullPath << "./runtime_client/client_"  << clientSerialNum << "/" << Settings::getFirmwarePath() ;
+        boost::filesystem::create_directories (fullPath.str().c_str()) ;
+    } catch (exception e ) {
+
+        return -1 ;
+    }
 
     hsock = socket(AF_INET, SOCK_STREAM, 0);
     if(hsock == -1){

@@ -98,9 +98,13 @@ int UpdateServer::Run()
     while(true){
         printf("waiting for a connection\n");
         csock = (int*)malloc(sizeof(int));
-        if((*csock = accept( hsock, (sockaddr*)&sadr, &addr_size))!= -1){
+        if((*csock = accept( hsock, (sockaddr*)&sadr, &addr_size))!= -1)
+        {
+            thread_params *tp = (thread_params*)malloc(sizeof(thread_params));
+            tp->csock = csock ;
+            tp->this1 = this ;
             printf("---------------------\nReceived connection from %s\n",inet_ntoa(sadr.sin_addr));
-            pthread_create(&thread_id,0,&ClientHandler, (void*)csock );
+            pthread_create(&thread_id, 0, &ClientHandler, (void*)tp );
             pthread_detach(thread_id);
         }
         else{
@@ -134,7 +138,8 @@ void UpdateServer::HandleMessage ( ClientParams * cp, message_buf * buf )
 
 
 void* UpdateServer::ClientHandler(void* lp){
-    int *csock = (int*)lp;
+    int *csock = ((thread_params *)lp)->csock;
+    UpdateServer *this1 = ((thread_params *)lp)->this1 ; 
 
     message_buf buffer ;
     int buffer_len = sizeof (message_buf);
@@ -157,6 +162,8 @@ void* UpdateServer::ClientHandler(void* lp){
     if ( cp == NULL )
         throw std::runtime_error("Error: call to getClientParams resulted in NULL return");
 
+    this1->HandleMessage ( cp, &buffer ) ;
+
     if((bytecount = send(*csock, &buffer, buffer_len, 0))== -1)
     {
         fprintf(stderr, "Error sending data %d\n", errno);
@@ -164,6 +171,6 @@ void* UpdateServer::ClientHandler(void* lp){
         return 0 ;
     }
      
-    printf("Sent bytes %d\n", bytecount);
+    cout << "Sent bytes " <<  bytecount << endl;
  
 }

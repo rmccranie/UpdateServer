@@ -3,6 +3,7 @@
 using namespace std ;
 
 string Settings::logPath = "./log";
+string Settings::firmwarePath = "./firmware";
 string Settings::iniFilename = "./updateServer.ini";
 UpdatePolicy Settings::updatePolicy = all ;
 std::map<std::string, ClientParams *> Settings::clientParamsMap ;
