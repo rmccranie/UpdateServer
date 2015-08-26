@@ -93,60 +93,77 @@ int UpdateClient::Run ()
         return -1 ;
     }
 
-    hsock = socket(AF_INET, SOCK_STREAM, 0);
-    if(hsock == -1){
-        printf("Error initializing socket %d\n",errno);
-        return 0;
-    }
+   while ( true ) 
+   {
+       hsock = socket(AF_INET, SOCK_STREAM, 0);
+       if( hsock == -1 )
+       {
+           printf("Error initializing socket %d\n",errno);
+           return 0;
+       }
     
-    p_int = (int*)malloc(sizeof(int));
-    *p_int = 1;
+       p_int = (int*)malloc(sizeof(int));
+       *p_int = 1;
         
-    if( (setsockopt(hsock, SOL_SOCKET, SO_REUSEADDR, (char*)p_int, sizeof(int)) == -1 )||
-        (setsockopt(hsock, SOL_SOCKET, SO_KEEPALIVE, (char*)p_int, sizeof(int)) == -1 ) ){
-        printf("Error setting options %d\n",errno);
-        free(p_int);
-        return 0 ;
-    }
-    free(p_int);
+       if( (setsockopt(hsock, SOL_SOCKET, SO_REUSEADDR, (char*)p_int, sizeof(int)) == -1 )||
+           (setsockopt(hsock, SOL_SOCKET, SO_KEEPALIVE, (char*)p_int, sizeof(int)) == -1 ) )
+       {
+           printf("Error setting options %d\n",errno);
+           free(p_int);
+           return 0 ;
+       }
+       
+       free(p_int);
 
-    my_addr.sin_family = AF_INET ;
-    my_addr.sin_port = htons(host_port);
+       my_addr.sin_family = AF_INET ;
+       my_addr.sin_port = htons(host_port);
     
-    memset(&(my_addr.sin_zero), 0, 8);
-    my_addr.sin_addr.s_addr = inet_addr(host_name);
+       memset(&(my_addr.sin_zero), 0, 8);
+       my_addr.sin_addr.s_addr = inet_addr(host_name);
 
-    if( connect( hsock, (struct sockaddr*)&my_addr, sizeof(my_addr)) == -1 ){
-        if((err = errno) != EINPROGRESS){
-            fprintf(stderr, "Error connecting socket %d\n", errno);
-            return 0;
-        }
-    }
+       if( connect( hsock, (struct sockaddr*)&my_addr, sizeof(my_addr)) == -1 )
+       {
+           if((err = errno) != EINPROGRESS)
+           {
+               fprintf(stderr, "Error connecting socket %d\n", errno);
+               return 0;
+           }
+       }
 
-    //Now lets do the client related stuff
+       //Now lets do the client related stuff
 
-    buffer_len = sizeof (message_buf);
+       buffer_len = sizeof (message_buf);
 
-    memset(&buffer, '\0', buffer_len);
+       memset(&buffer, '\0', buffer_len);
 
-    buffer.msg_type = cs_updateAvailable ;
-    buffer.clientVersion = invalidVersion ; 
-    buffer.clientSerial = clientSerialNum ;
+       buffer.msg_type = cs_updateAvailable ;
+       buffer.clientVersion = currentVersion ; 
+       buffer.clientSerial = clientSerialNum ;
 
-    if( (bytecount=send(hsock, &buffer, buffer_len,0))== -1){
-        fprintf(stderr, "Error sending data %d\n", errno);
-        return 0 ;
-    }
+       cout << "sending" << endl ;
+       if( (bytecount=send(hsock, &buffer, buffer_len,0))== -1 ) 
+       {
+           fprintf(stderr, "Error sending data %d\n", errno);
+           return 0 ;
+       }
 
-    if((bytecount = recv(hsock, &buffer, buffer_len, 0))== -1){
-        fprintf(stderr, "Error receiving data %d\n", errno);
-        return 0 ;
-    }
+       cout << "receiving" << endl ;
+       if((bytecount = recv(hsock, &buffer, buffer_len, 0))== -1){
+           fprintf(stderr, "Error receiving data %d\n", errno);
+           return 0 ;
+       }
 
-    cout << "Received - msg_type: " << ClientServerComms::GetMessageTypeString(buffer.msg_type) << ", version; " << buffer.clientVersion << endl ;
+       cout << "Received - msg_type: " << ClientServerComms::GetMessageTypeString(buffer.msg_type) << ", version; " << buffer.clientVersion << endl ;
 
-    HandleReceivedMessage (&buffer) ;
-    close(hsock);
+       //-- acto on message received from server.
+       HandleReceivedMessage (&buffer) ;
+
+       close(hsock);
+       cout << "sleeping" << endl ;
+       sleep (updateInterval) ;
+       cout << "waking" << endl ;
+     }
+
 
     return 0 ;
 }

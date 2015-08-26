@@ -126,10 +126,18 @@ void UpdateServer::HandleMessage ( ClientParams * cp, message_buf * buf )
     switch (buf->msg_type)
     {
     case cs_updateAvailable:
-       buf->clientVersion = atoi (cp->GetVersion().c_str()) ;
-       buf->msg_type = sc_doUpdate ;  
-       sprintf (buf->url, cp->GetUpdateUrl().c_str(), strlen(cp->GetUpdateUrl().c_str() )) ;
+       if ( buf->clientVersion != atoi (cp->GetVersion().c_str()))
+       {
+           buf->clientVersion = atoi (cp->GetVersion().c_str()) ;
+           buf->msg_type = sc_doUpdate ;  
+           sprintf (buf->url, cp->GetUpdateUrl().c_str(), strlen(cp->GetUpdateUrl().c_str() )) ;
+       }
+       else
+       {
+          buf->msg_type = sc_noUpdateAvailable ;
+       }
        break ;
+
     default: 
        cout << "Invalid message type receieved from client" << endl ;
     } 
