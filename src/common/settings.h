@@ -22,6 +22,7 @@ public:
     static UpdatePolicy &getUpdatePolicy () { return updatePolicy ; }
     static void setClientParams ( std::string, std::string, std::string, int ) ;
     static void cleanParams () ; //-- called to clean up if necessaril.
+
 private:
     static std::string logPath ;
     static std::string firmwarePath ;

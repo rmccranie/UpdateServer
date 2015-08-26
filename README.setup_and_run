@@ -7,6 +7,8 @@ The application makes use of the following libraries:
   - boost (filesystem)
   - the C++ STL
   - libcurl
+  - pthreads
+
   These must be installed via your package management system before building.
 
 The application makes use of a tftp server which is looked-up by name (e.g., update.server.com). In 

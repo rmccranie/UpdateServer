@@ -15,6 +15,7 @@ void Settings::setClientParams ( string key, string ver, string url, int interva
     clientParamsMap.insert (std::pair<std::string, ClientParams*>(key, cp)) ;
 
 }
+
 void Settings::setUpdatePolicy (string p )
 {
     //-- make the default "all"
