@@ -34,6 +34,7 @@ listenPort (serverPort)
     prctl(PR_SET_NAME, (unsigned long) mynameis, 0, 0, 0);
 
     memset(&act, 0, sizeof(act));
+
     //-- Register signal handler for SIGHUP
     act.sa_sigaction = sighandler;
     act.sa_flags = SA_SIGINFO;
@@ -42,6 +43,10 @@ listenPort (serverPort)
 
 
 //-- REceived SIGHUP, so reload INI file.
+//-- NOTE: there is some danger here dependinging on whate's happening
+//-- during interrupt time.  It would most likely happen while the 
+//-- server is sleeping, but it's possible there could be some problems
+//-- here due to that.  For now, it works for this demo purpose.
 void UpdateServer::sighandler(int signum, siginfo_t *info, void *ptr)
 {
     Utils::loadIniFile() ;
@@ -50,15 +55,14 @@ void UpdateServer::sighandler(int signum, siginfo_t *info, void *ptr)
 
 UpdateServer::~UpdateServer()
 {
-
+    //-- make sure the map gets cleaned up.
+    Settings::cleanParams();
 }
 
-bool UpdateAvailable () 
-{
-
-    return false ;
-}
-
+/*
+ * Implementes the main application loop. Loops on accept
+ * waiting for client requests.
+ */
 int UpdateServer::Run()
 {
     struct sockaddr_in my_addr;
@@ -77,19 +81,21 @@ int UpdateServer::Run()
 
     //-- Set up socket.
     hsock = socket(AF_INET, SOCK_STREAM, 0);
-    if(hsock == -1){
-        printf("Error initializing socket %d\n", errno);
-        goto FINISH;
+    if(hsock == -1)
+    {
+        cout << "Error initializing socket " <<  errno << endl;
+        return 0 ;
     }
     
     p_int = (int*)malloc(sizeof(int));
     *p_int = 1;
         
     if( (setsockopt(hsock, SOL_SOCKET, SO_REUSEADDR, (char*)p_int, sizeof(int)) == -1 )||
-        (setsockopt(hsock, SOL_SOCKET, SO_KEEPALIVE, (char*)p_int, sizeof(int)) == -1 ) ){
-        printf("Error setting options %d\n", errno);
+        (setsockopt(hsock, SOL_SOCKET, SO_KEEPALIVE, (char*)p_int, sizeof(int)) == -1 ) )
+    {
+        cout << "Error setting options " <<  errno << endl;
         free(p_int);
-        goto FINISH;
+        return 0 ;
     }
     free(p_int);
 
@@ -99,21 +105,22 @@ int UpdateServer::Run()
     memset(&(my_addr.sin_zero), 0, 8);
     my_addr.sin_addr.s_addr = INADDR_ANY ;
     
-    if( bind( hsock, (sockaddr*)&my_addr, sizeof(my_addr)) == -1 ){
-        fprintf(stderr,"Error binding to socket, make sure nothing else is listening on this port %d\n",errno);
-        goto FINISH;
-    }
-    if(listen( hsock, 10) == -1 ){
-        fprintf(stderr, "Error listening %d\n",errno);
-        goto FINISH;
+    if( bind( hsock, (sockaddr*)&my_addr, sizeof(my_addr)) == -1 )
+    {
+        cout << "Error binding to socket, make sure nothing else is listening on this port " << errno << endl ;
+        return 0 ;
     }
 
-    //Now lets do the server stuff
+    if(listen( hsock, 10) == -1 ){
+        cout << "Error listening " << errno << endl ;
+        return 0 ;
+    }
 
     addr_size = sizeof(sockaddr_in);
-    
-    while(true){
-    
+   
+    //-- loop forever on accept. Spawn a thread to handle the client when a message is available. 
+    while ( true )
+    {
         cout << "waiting for a connection" << endl ;
         csock = (int*)malloc(sizeof(int));
         if((*csock = accept( hsock, (sockaddr*)&sadr, &addr_size))!= -1)
@@ -121,21 +128,22 @@ int UpdateServer::Run()
             thread_params *tp = (thread_params*)malloc(sizeof(thread_params));
             tp->csock = csock ;
             tp->this1 = this ;
-            printf("---------------------\nReceived connection from %s\n",inet_ntoa(sadr.sin_addr));
+            cout << "---------------------\nReceived connection from " << inet_ntoa(sadr.sin_addr) << endl;
             pthread_create(&thread_id, 0, &ClientHandler, (void*)tp );
             pthread_detach(thread_id);
         }
-        else{
-            fprintf(stderr, "Error accepting %d\n", errno);
+        else
+        {
+            cout << "Error accepting " <<  errno << endl ;
         }
     }
     
-FINISH:
-;
     return 0 ;
 }
 
-
+/*
+ * Respond to individual client messages.
+ */
 void UpdateServer::HandleMessage ( ClientParams * cp, message_buf * buf )
 {
     
@@ -144,6 +152,8 @@ void UpdateServer::HandleMessage ( ClientParams * cp, message_buf * buf )
     //-- At the moment, we only get one message type from clients.
     switch (buf->msg_type)
     {
+    //-- all we let the ClientParms determine what to do about update
+    //-- policy.  It's just selected appropriately based on that.
     case cs_updateAvailable:
        if ( buf->clientVersion != atoi (cp->GetVersion().c_str()))
        {
@@ -163,7 +173,12 @@ void UpdateServer::HandleMessage ( ClientParams * cp, message_buf * buf )
 }
 
 
-void* UpdateServer::ClientHandler(void* lp){
+/*
+ * The handler for each thread to use for responding
+ * to client requests.
+ */
+void* UpdateServer::ClientHandler(void* lp)
+{
     int *csock = ((thread_params *)lp)->csock;
     UpdateServer *this1 = ((thread_params *)lp)->this1 ; 
 
@@ -173,7 +188,7 @@ void* UpdateServer::ClientHandler(void* lp){
 
     memset(&buffer, 0, buffer_len);
     if((bytecount = recv(*csock, &buffer, buffer_len, 0))== -1){
-        fprintf(stderr, "Error receiving data %d\n", errno);
+        cout << "Error receiving data " << errno << endl ;
         free (csock) ;
         return 0;
     }
@@ -194,11 +209,10 @@ void* UpdateServer::ClientHandler(void* lp){
 
     if((bytecount = send(*csock, &buffer, buffer_len, 0))== -1)
     {
-        fprintf(stderr, "Error sending data %d\n", errno);
+        cout << "Error sending data " <<  errno << endl ;
         free (csock) ;
         return 0 ;
     }
      
     cout << "Sent bytes " <<  bytecount << endl;
- 
 }

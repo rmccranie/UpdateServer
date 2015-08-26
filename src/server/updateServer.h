@@ -34,7 +34,6 @@ private:
     struct sigaction act;
 
      //-- Private functions
-    bool UpdateAvailable() ;
     static void *ClientHandler (void *) ;
     void HandleMessage ( ClientParams *, message_buf * ) ; 
     static void sighandler (int, siginfo_t *, void * ) ;

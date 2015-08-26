@@ -1,7 +1,6 @@
 #include "client.h"
 #include "utils.h"
 #include "settings.h"
-#include <sys/prctl.h>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -11,7 +10,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <stdio.h>
 #include <netinet/in.h>
 #include <resolv.h>
 #include <sys/socket.h>
@@ -29,6 +27,10 @@ clientSerialNum (sn)
 
 }
 
+/* 
+ * Do what the name implies. Uses a TFTODownloader (curl) to 
+ * do its thing.
+ */
 bool UpdateClient::DoUpdate (int ver, const char *url)
 {
     TFTPDownloader dl ;
@@ -45,6 +47,9 @@ bool UpdateClient::DoUpdate (int ver, const char *url)
     return true ;
 }
 
+/*
+ * Act appropriately based on message type (update the message_buf.
+ */
 void UpdateClient::HandleReceivedMessage ( message_buf * buf )
 {
     //-- always set the update interval regardless of messate type.  Server knows best.
@@ -66,6 +71,10 @@ void UpdateClient::HandleReceivedMessage ( message_buf * buf )
    } 
 }
 
+/*
+ * Implement the main client loop.  Do complete socket
+ * creation and cleanup each time.
+ */
 int UpdateClient::Run ()
 {
     int host_port= serverPort;
@@ -81,7 +90,6 @@ int UpdateClient::Run ()
     int * p_int;
     int err;
 
-
     try 
     {
         std::stringstream fullPath ;
@@ -93,7 +101,10 @@ int UpdateClient::Run ()
 
         return -1 ;
     }
-
+   
+   //-- this is the loop.  After send/receiver, the client
+   //-- sleeps a time determined by data supplied by
+   //-- the server.
    while ( true ) 
    {
        hsock = socket(AF_INET, SOCK_STREAM, 0);
@@ -130,8 +141,6 @@ int UpdateClient::Run ()
                return 0;
            }
        }
-
-       //Now lets do the client related stuff
 
        buffer_len = sizeof (message_buf);
 
