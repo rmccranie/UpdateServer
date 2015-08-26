@@ -143,7 +143,7 @@ int UpdateClient::Run ()
 
        if( (bytecount=send(hsock, &buffer, buffer_len,0))== -1 ) 
        {
-           cout << stderr, "Error sending data " <<  errno << endl ;
+           cout << "Error sending data " <<  errno << endl ;
            return 0 ;
        }
 
