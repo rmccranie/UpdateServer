@@ -54,14 +54,14 @@ bool Utils::loadIniFile ()
        cout << "version (all): " << allVersion << endl ;
 
        string evenVersion        = pt.get<std::string>("ClientEvenGroup.us_client_version")  ;
-       string evenUpdateURL      = pt.get<std::string>("ClientEvenGroup.us_client_update_url") ;
+       string evenUpdateUrl      = pt.get<std::string>("ClientEvenGroup.us_client_update_url") ;
        int    evenUpdateInterval = atoi((pt.get<std::string>("ClientEvenGroup.us_client_update_interval")).c_str()) ;
-       Settings::setClientParams ("even", allVersion, allUpdateUrl, allUpdateInterval) ;
+       Settings::setClientParams ("even", evenVersion, evenUpdateUrl, evenUpdateInterval) ;
 
        string oddVersion         = pt.get<std::string>("ClientOddGroup.us_client_version")  ;
-       string oddUpdateURL       = pt.get<std::string>("ClientOddGroup.us_client_update_url") ;
+       string oddUpdateUrl       = pt.get<std::string>("ClientOddGroup.us_client_update_url") ;
        int    oddUpdateInterval  = atoi((pt.get<std::string>("ClientOddGroup.us_client_update_interval")).c_str()) ;
-       Settings::setClientParams ("odd", allVersion, allUpdateUrl, allUpdateInterval) ;
+       Settings::setClientParams ("odd", oddVersion, oddUpdateUrl, oddUpdateInterval) ;
 
     }
     catch (exception e)

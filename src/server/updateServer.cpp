@@ -2,7 +2,6 @@
 #include "updateServer.h"
 #include <sys/prctl.h>
 #include <utils.h>
-#include <exception> //-- needed because boost lib call can throw exceptions
 #include <inttypes.h>
 #include <boost/filesystem.hpp>
 #include <fcntl.h>
@@ -19,7 +18,6 @@
 #include <sstream>
 #include "cs_comms.h"
 #include <exception>
-
 using namespace std;
 using namespace boost::filesystem;
 
@@ -130,6 +128,7 @@ void UpdateServer::HandleMessage ( ClientParams * cp, message_buf * buf )
     case cs_updateAvailable:
        buf->clientVersion = atoi (cp->GetVersion().c_str()) ;
        buf->msg_type = sc_doUpdate ;  
+       sprintf (buf->url, cp->GetUpdateUrl().c_str(), strlen(cp->GetUpdateUrl().c_str() )) ;
        break ;
     default: 
        cout << "Invalid message type receieved from client" << endl ;
@@ -162,6 +161,7 @@ void* UpdateServer::ClientHandler(void* lp){
     if ( cp == NULL )
         throw std::runtime_error("Error: call to getClientParams resulted in NULL return");
 
+    //-- call an object method on the caller.
     this1->HandleMessage ( cp, &buffer ) ;
 
     if((bytecount = send(*csock, &buffer, buffer_len, 0))== -1)

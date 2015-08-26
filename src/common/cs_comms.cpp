@@ -12,7 +12,6 @@ ClientServerComms::ClientServerComms ( )
 
 void ClientServerComms::SendMessage ( int mq, message_buf *msg )
 {
-    int buf_length = sizeof (message_buf) ;
 
     /*
      * Send a message.

@@ -6,8 +6,6 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-#include <cstdio>
-#include <cstdlib>
 
 #include <fcntl.h>
 #include <string.h>
@@ -21,6 +19,7 @@
 #include <unistd.h>
 
 #include <boost/filesystem.hpp>
+#include "tftpdownloader.h"
 
 using namespace std;
 
@@ -30,11 +29,20 @@ clientSerialNum (sn)
 
 }
 
-bool UpdateClient::DoUpdate (int ver)
+bool UpdateClient::DoUpdate (int ver, const char *url)
 {
-
+    TFTPDownloader dl ;
+    stringstream filename ;
+    filename << "./runtime_client/client_"  << clientSerialNum << "/" << Settings::getFirmwarePath() << "/myfirmware.zip" ;
+   
+    cout << "url: " << url << endl ; 
     currentVersion = ver ;
 
+    firmwareFile.open (filename.str().c_str(), ios::out | ios::binary);
+ 
+    dl.Download (url, &firmwareFile ) ; 
+
+    firmwareFile.close() ;
     return true ;
 }
 
@@ -49,7 +57,7 @@ void UpdateClient::HandleReceivedMessage ( message_buf * buf )
     {
     case sc_doUpdate:
         cout << "Commanded to update.  UPDATING!" << endl ;
-        DoUpdate( buf->clientVersion );
+        DoUpdate( buf->clientVersion, buf->url );
         break ;
     case sc_noUpdateAvailable:
         cout << "No update available for this period." << endl ;
@@ -139,4 +147,6 @@ int UpdateClient::Run ()
 
     HandleReceivedMessage (&buffer) ;
     close(hsock);
+
+    return 0 ;
 }

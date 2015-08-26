@@ -6,7 +6,6 @@
 #include <inttypes.h>
 #include "cs_comms.h"
 
-using namespace std ;
 
 class UpdateClient
 {
@@ -19,9 +18,9 @@ private:
     int clientSerialNum ;
     int currentVersion;
     int updateInterval ;
-    ofstream myFile;
+    std::ofstream firmwareFile;
 
-    bool DoUpdate (int) ; 
+    bool DoUpdate (int, const char*) ; 
     void HandleReceivedMessage (message_buf *) ;
 } ;
 
