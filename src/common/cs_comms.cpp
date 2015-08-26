@@ -10,14 +10,6 @@ ClientServerComms::ClientServerComms ( )
 {
 }
 
-void ClientServerComms::SendMessage ( int mq, message_buf *msg )
-{
-
-    /*
-     * Send a message.
-     */
-}
-
 std::string ClientServerComms::GetMessageTypeString ( MessageType m )
 {
     return MessageTypeString[m] ;

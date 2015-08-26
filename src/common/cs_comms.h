@@ -32,7 +32,6 @@ class ClientServerComms
 public:
     ClientServerComms () ;
     static std::string GetMessageTypeString (MessageType m) ;
-    void SendMessage ( int, message_buf  * ) ;
     int GetUpdateInterval () { return updateInterval ; }
     //-- This is the broadcast method to message all children.
 private:

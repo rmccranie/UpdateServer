@@ -1,0 +1,52 @@
+This document provides a brief description of pieces needed to build and run the UpdateServer application.
+
+NOTE: I built and tested this application on a Centos 6.6 machine.
+
+The application makes use of the following libraries:
+
+  - boost (filesystem)
+  - the C++ STL
+  - libcurl
+  These must be installed via your package management system before building.
+
+The application makes use of a tftp server which is looked-up by name (e.g., update.server.com). In 
+order to facilitate this, I performed the following setup steps.  Note that YMMV, 
+but these steps should be reasonably common to other Linux platforms.  
+
+The entries added to my /etc/hosts file are:
+
+  192.168.11.10 updates.server.com
+  192.168.11.10 updates.even.server.com
+  192.168.11.10 updates.odd.server.com
+
+These name entries just need to match whatever you specify in the updateServer.ini file.
+
+I added the following entry into my /etc/xinetd.conf file:
+
+  bind = 192.168.11.10
+
+My config for tftp added to /etc/xinetd.d/tftp is as follows:
+
+  service tftp
+  {
+      socket_type             = dgram
+      protocol                = udp
+      wait                    = yes
+      user                    = root
+      server                  = /usr/sbin/in.tftpd
+      server_args             = -c -p --refuse tsize --refuse timeout -U 117 -a 192.168.11.10 -s /var/lib/tftpboot
+      disable                 = no
+      per_source              = 11
+      cps                     = 100 2
+      flags                   = IPv4
+  }
+
+
+In order to run, some file should be placed in /var/lib/tftpboot (if your setup matches mine) so that the filename
+there matches the filename specified in the updateServer.ini file for url.  The "rolling updates" feature allows
+you to edit settings either for "all" or for "odd" and "even" serial number clients.
+
+The process to trigger a reload of the ini files (to emulate version update) is to edit the ini file and then
+call the "notify" script (it just sends a SIGHUP to the server).
+
+

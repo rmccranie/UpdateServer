@@ -5,11 +5,9 @@ Assumptions:
   (python and/or C++).  I chose to implement in Linux (Centos 6.6 distribution) and C++.
 
 - The server determines whether the client is required to update or not.  Client will provide its
-  version number, but mechanism for server to command upgrade can be made to be more sophisticated
-  than "versions don't match" (though for initial implementation, this may be alli that's implemented).
+  version number, but server determines whether necessary according to its own criteria.
 
-- URL for update can either be hard-coded or configurable (with preference given in my design for
-  configurable).  The term URL is deemed to imply lookup by "name". Name-server lookup for this app
+- The term URL in the problem statement is deemed to imply lookup by "name". Name-server lookup for this app
   will be facilitated using the /etc/hosts file.
 
 - Signaling will be accomplished using a protocol built on TCP. There are many alternatives (for example
@@ -34,7 +32,7 @@ Assumptions:
   a trivial detail assuming use of network sockets).
 
 - No mention is made in the problem statement of ensuring authenticated updates. Some thought may be given
-  to this based on time needed for implementation.
+  to this based on time needed for implementation, but this is considered optional.
 
 - Clients will need some means of determining how often to check in for updates. This can be hard-coded 
   or configurable (preference given to configurable).
@@ -46,7 +44,8 @@ Client:
 - Polling rate, client version and upgrade URL will all be provisioned on clients via responses from 
   the server during client check-in for update. Clients will request this config data at startup. 
   No assumptions will be made by the client about these parameters. This is to say that it's possible
-  to change some client parameters (like polling rate) when no update is available.
+  to change some client parameters (like polling rate) when no update is available. All clients will
+  get an update at startup.
 
 - Clients will be started with a "serial number" at startup.  This serial number for simplicity will just 
   be a number from 1 to 10. 
@@ -54,11 +53,43 @@ Client:
 Server:
 
 - The server will be built to separate the concerns of signaling/update determination and download.
-  I will need some simple way to facilitate that. I'd like to use something like an off-the-shelf
-  tftp server. Otherwise, I will consider spinning off a separate process to handle "firmware"
-  downloads.
+  I've selected the curl_easy API and tftp for download.  URLs will be specified in the INI file with
+  full qualification (tftp://<etc.>).  This requires that a tftp server be set up on the host machine.
+  I accomplished this on my Centos 6.6 test machine via xinetd.
 
-- Updates availability will be triggered on the server by use of a SIGHUP sent to the server process
+- Reload of the INI file will be triggered to the server by use of a SIGHUP sent to the server process
   (a standard convention) and will cause the server to reload its config/ini file.  The server must 
   wait for clients to "check in" however before clients begin the update process. There is no mechanism
   for the server to notify clients of change other than this. 
+
+- The server will support "rolling updates".  That is to say, updates may be triggered for all clients
+  or only for a subset (even or odd based on client serial number in this implementation). NOTE: this
+  does go slightly outside the problem statement. I added this because I believe it to be a real-world
+  concern and actually comes from work I'm currently doing. I hope this may be forgiven.
+
+
+A guide to the code:
+
+Server code:
+  main.cpp - 
+      provides for start up of UpdateServer by calling "Run" method on object.
+  notify_server_new_ini.sh - 
+      Convenience script to trigger the server to reload its ini file.
+  updateServer.h/updateServer.cpp - 
+      Encapsulates the update server. Facilitates looping on accept() to wait for client connections. 
+  updateServer.ini -
+      Contains server ini parameters divided in terms of groups (server and client config [further 
+      subdivided by update policy]).
+
+Client code:
+
+  main.cpp - 
+      provides for startup of UpdateClient.  Requires user to enter a "serial number" via command line.
+  client.h/client.cpp - 
+      Encapsulates the UpdateClient.  Implements looping with socket cleanup on each loop.  Sleep time
+      in loop is commanded via data supplied by the server.
+  tftpdownloader.h/tftpdownloader.cpp -
+      Encapsulates a TFTPDownloader which composes functionality of the curl_easy API.
+  start_clients.sh/kill_clients.sh - 
+      Convenience scripts to start and stop client processes.
+

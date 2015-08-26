@@ -7,8 +7,6 @@
 #include "settings.h"
 #include "cs_comms.h"
 
-using namespace std;
-
 const int timeout = 60 ;
 const int numberOfChildren = 10;
 
@@ -31,7 +29,7 @@ public:
 private:
     int listenPort ;
     pid_t serverPid ;
-    ofstream myFile ;
+    std::ofstream myFile ;
     static bool running ;
     struct sigaction act;
 
