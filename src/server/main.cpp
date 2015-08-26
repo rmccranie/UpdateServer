@@ -8,7 +8,6 @@ using namespace std;
 int main ()
 {
     UpdateServer *p = new UpdateServer() ;
-    Utils::loadIniFile() ;
     try {
       p->Run();
     }

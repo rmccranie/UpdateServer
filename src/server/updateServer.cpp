@@ -30,7 +30,23 @@ listenPort (serverPort)
     filename << Settings::getLogPath() << "/Parent_log.txt" ;
     
     myFile.open (filename.str().c_str(), std::ofstream::out | std::ofstream::app);    
+    char mynameis[] = "updateServer" ;
+    prctl(PR_SET_NAME, (unsigned long) mynameis, 0, 0, 0);
+
+    memset(&act, 0, sizeof(act));
+    //-- Register signal handler for SIGHUP
+    act.sa_sigaction = sighandler;
+    act.sa_flags = SA_SIGINFO;
+    sigaction(SIGHUP, &act, NULL);
 } 
+
+
+//-- REceived SIGHUP, so reload INI file.
+void UpdateServer::sighandler(int signum, siginfo_t *info, void *ptr)
+{
+    Utils::loadIniFile() ;
+}
+
 
 UpdateServer::~UpdateServer()
 {
@@ -56,6 +72,7 @@ int UpdateServer::Run()
     sockaddr_in sadr;
     pthread_t thread_id=0;
 
+    Utils::loadIniFile() ;
 
     hsock = socket(AF_INET, SOCK_STREAM, 0);
     if(hsock == -1){
@@ -94,7 +111,8 @@ int UpdateServer::Run()
     addr_size = sizeof(sockaddr_in);
     
     while(true){
-        printf("waiting for a connection\n");
+    
+        cout << "waiting for a connection" << endl ;
         csock = (int*)malloc(sizeof(int));
         if((*csock = accept( hsock, (sockaddr*)&sadr, &addr_size))!= -1)
         {

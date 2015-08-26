@@ -23,4 +23,5 @@ $(MYPROGRAM): $(SOURCE)
 clean:
 
 	rm -f $(MYPROGRAM)
+	rm -rf runtime_client
 

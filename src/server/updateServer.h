@@ -33,10 +33,13 @@ private:
     pid_t serverPid ;
     ofstream myFile ;
     static bool running ;
+    struct sigaction act;
+
      //-- Private functions
     bool UpdateAvailable() ;
     static void *ClientHandler (void *) ;
     void HandleMessage ( ClientParams *, message_buf * ) ; 
+    static void sighandler (int, siginfo_t *, void * ) ;
     
 };
 
