@@ -35,7 +35,6 @@ bool UpdateClient::DoUpdate (int ver, const char *url)
     stringstream filename ;
     filename << "./runtime_client/client_"  << clientSerialNum << "/" << Settings::getFirmwarePath() << "/myfirmware.zip" ;
    
-    cout << "url: " << url << endl ; 
     currentVersion = ver ;
 
     firmwareFile.open (filename.str().c_str(), ios::out | ios::binary);
@@ -88,7 +87,9 @@ int UpdateClient::Run ()
         std::stringstream fullPath ;
         fullPath << "./runtime_client/client_"  << clientSerialNum << "/" << Settings::getFirmwarePath() ;
         boost::filesystem::create_directories (fullPath.str().c_str()) ;
-    } catch (exception e ) {
+    } 
+    catch (exception e ) 
+    {
 
         return -1 ;
     }
@@ -98,7 +99,7 @@ int UpdateClient::Run ()
        hsock = socket(AF_INET, SOCK_STREAM, 0);
        if( hsock == -1 )
        {
-           printf("Error initializing socket %d\n",errno);
+           cout << "Error initializing socket " << errno << endl ;
            return 0;
        }
     
@@ -108,7 +109,7 @@ int UpdateClient::Run ()
        if( (setsockopt(hsock, SOL_SOCKET, SO_REUSEADDR, (char*)p_int, sizeof(int)) == -1 )||
            (setsockopt(hsock, SOL_SOCKET, SO_KEEPALIVE, (char*)p_int, sizeof(int)) == -1 ) )
        {
-           printf("Error setting options %d\n",errno);
+           cout << "Error setting options " << errno << endl ;
            free(p_int);
            return 0 ;
        }
@@ -125,7 +126,7 @@ int UpdateClient::Run ()
        {
            if((err = errno) != EINPROGRESS)
            {
-               fprintf(stderr, "Error connecting socket %d\n", errno);
+               cout << "Error connecting socket " <<  errno << endl ;;
                return 0;
            }
        }
@@ -140,16 +141,14 @@ int UpdateClient::Run ()
        buffer.clientVersion = currentVersion ; 
        buffer.clientSerial = clientSerialNum ;
 
-       cout << "sending" << endl ;
        if( (bytecount=send(hsock, &buffer, buffer_len,0))== -1 ) 
        {
-           fprintf(stderr, "Error sending data %d\n", errno);
+           cout << stderr, "Error sending data " <<  errno << endl ;
            return 0 ;
        }
 
-       cout << "receiving" << endl ;
        if((bytecount = recv(hsock, &buffer, buffer_len, 0))== -1){
-           fprintf(stderr, "Error receiving data %d\n", errno);
+           cout << "Error receiving data " << errno << endl ;
            return 0 ;
        }
 
@@ -159,9 +158,7 @@ int UpdateClient::Run ()
        HandleReceivedMessage (&buffer) ;
 
        close(hsock);
-       cout << "sleeping" << endl ;
        sleep (updateInterval) ;
-       cout << "waking" << endl ;
      }
 
 

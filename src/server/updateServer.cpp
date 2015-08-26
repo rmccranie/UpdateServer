@@ -72,8 +72,10 @@ int UpdateServer::Run()
     sockaddr_in sadr;
     pthread_t thread_id=0;
 
+    //-- Load
     Utils::loadIniFile() ;
 
+    //-- Set up socket.
     hsock = socket(AF_INET, SOCK_STREAM, 0);
     if(hsock == -1){
         printf("Error initializing socket %d\n", errno);
@@ -140,7 +142,6 @@ void UpdateServer::HandleMessage ( ClientParams * cp, message_buf * buf )
     buf->updateInterval = cp->GetUpdateInterval () ; 
 
     //-- At the moment, we only get one message type from clients.
-
     switch (buf->msg_type)
     {
     case cs_updateAvailable:
@@ -181,7 +182,8 @@ void* UpdateServer::ClientHandler(void* lp){
          << " from client: " << buffer.clientSerial << endl ;
 
     //== Get ClientParams based on update policy in force.
-    std::string s = "all" ;
+    UpdatePolicy policy = Settings::getUpdatePolicy() ;
+    std::string s = (policy == all ? "all" : (policy == odd_even && buffer.clientSerial % 2) ? "odd" : "even") ;
     ClientParams *cp = Settings::getClientParams ( s );
 
     if ( cp == NULL )
