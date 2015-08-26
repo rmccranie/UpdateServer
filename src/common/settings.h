@@ -15,9 +15,9 @@ public:
 
     static std::string &getLogPath()  { return logPath ;  }
     static std::string &getIniFilename() { return iniFilename ; }
-    static ClientParams &getClientParams (std::string key) ;
-    static void setLogPath(string p)  { logPath = p ;  }
-    static void setUpdatePolicy(string p) ;
+    static ClientParams *getClientParams (std::string key) ;
+    static void setLogPath(std::string p)  { logPath = p ;  }
+    static void setUpdatePolicy(std::string p) ;
     static UpdatePolicy &getUpdatePolicy () { return updatePolicy ; }
     static void setClientParams ( std::string, std::string, std::string, int ) ;
     static void cleanParams () ; //-- called to clean up if necessaril.

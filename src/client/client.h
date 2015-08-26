@@ -2,9 +2,9 @@
 #define UPDATE_CLIENT_H
 
 #include <iostream>
-#include "settings.h"
 #include <fstream>
 #include <inttypes.h>
+#include "cs_comms.h"
 
 using namespace std ;
 
@@ -16,11 +16,12 @@ public:
     int Run() ;
 
 private:
-    pid_t myPid ;
-    pid_t parentPid ;
-    int childNum;
-    int64_t parentPointer ;
+    int currentVersion;
+    int updateInterval ;
     ofstream myFile;
+
+    bool DoUpdate (int) ; 
+    void HandleReceivedMessage (message_buf *) ;
 } ;
 
 #endif

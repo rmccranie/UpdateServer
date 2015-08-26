@@ -9,7 +9,13 @@ int main ()
 {
     UpdateServer *p = new UpdateServer() ;
     Utils::loadIniFile() ;
-    p->Run();
+    try {
+      p->Run();
+    }
+    catch ( exception e )
+    {
+        cout << "Exception: " << e.what() << endl ;
+    }
 
     return 0 ;
 }

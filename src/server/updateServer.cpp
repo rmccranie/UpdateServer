@@ -17,6 +17,8 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <sstream>
+#include "cs_comms.h"
+#include <exception>
 
 using namespace std;
 using namespace boost::filesystem;
@@ -24,13 +26,12 @@ using namespace boost::filesystem;
 bool UpdateServer::running = true ;
 
 UpdateServer::UpdateServer() :
-listenPort (55123)
+listenPort (serverPort)
 {
     stringstream filename ;
     filename << Settings::getLogPath() << "/Parent_log.txt" ;
     
     myFile.open (filename.str().c_str(), std::ofstream::out | std::ofstream::app);    
-
 } 
 
 UpdateServer::~UpdateServer()
@@ -112,31 +113,71 @@ FINISH:
     return 0 ;
 }
 
+//void* UpdateServer::ClientHandler(void* lp){
+//    int *csock = (int*)lp;
+//
+//    char buffer[1024];
+//    int buffer_len = 1024;
+//    int bytecount;
+//
+//    memset(buffer, 0, buffer_len);
+//    if((bytecount = recv(*csock, buffer, buffer_len, 0))== -1){
+//        fprintf(stderr, "Error receiving data %d\n", errno);
+//        goto FINISH;
+//    }
+//    printf("Received bytes %d\nReceived string \"%s\"\n", bytecount, buffer);
+//    strcat(buffer, " SERVER ECHO");
+//
+//    if((bytecount = send(*csock, buffer, strlen(buffer), 0))== -1){
+//         fprintf(stderr, "Error sending data %d\n", errno);
+//         goto FINISH;
+//     }
+//     
+//     printf("Sent bytes %d\n", bytecount);
+//
+// 
+// FINISH:
+//     free(csock);
+//     return 0;
+// }
 
 void* UpdateServer::ClientHandler(void* lp){
     int *csock = (int*)lp;
 
-    char buffer[1024];
-    int buffer_len = 1024;
+    message_buf buffer ;
+    int buffer_len = sizeof (message_buf);
     int bytecount;
 
-    memset(buffer, 0, buffer_len);
-    if((bytecount = recv(*csock, buffer, buffer_len, 0))== -1){
+    memset(&buffer, 0, buffer_len);
+    if((bytecount = recv(*csock, &buffer, buffer_len, 0))== -1){
         fprintf(stderr, "Error receiving data %d\n", errno);
-        goto FINISH;
+        free (csock) ;
+        return 0;
     }
-    printf("Received bytes %d\nReceived string \"%s\"\n", bytecount, buffer);
-    strcat(buffer, " SERVER ECHO");
 
-    if((bytecount = send(*csock, buffer, strlen(buffer), 0))== -1){
-         fprintf(stderr, "Error sending data %d\n", errno);
-         goto FINISH;
-     }
+    cout << "Received - msg_type: " << ClientServerComms::GetMessageTypeString(buffer.msg_type) << ", clnt version: " << buffer.clientVersion << endl ;
+
+    //== Get ClientParams based on update policy in force.
+    std::string s = "all" ;
+    ClientParams *cp = Settings::getClientParams ( s );
+
+    if ( cp == NULL )
+        throw std::runtime_error("Error: call to getClientParams resulted in NULL return");
+
+    buffer.updateInterval = cp->GetUpdateInterval () ; 
+
+    if ( buffer.msg_type == cs_updateAvailable && buffer.clientVersion != atoi(cp->GetVersion().c_str()) )
+    {
+       buffer.clientVersion = atoi (cp->GetVersion().c_str()) ;
+       buffer.msg_type = sc_doUpdate ;  
+    }
+
+    if((bytecount = send(*csock, &buffer, buffer_len, 0))== -1){
+        fprintf(stderr, "Error sending data %d\n", errno);
+        free (csock) ;
+        return 0 ;
+    }
      
-     printf("Sent bytes %d\n", bytecount);
+    printf("Sent bytes %d\n", bytecount);
  
- 
- FINISH:
-     free(csock);
-     return 0;
- }
+}

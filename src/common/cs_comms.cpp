@@ -5,9 +5,9 @@
 #include <stdio.h>
 #include <errno.h>
 
+std::string MessageTypeString [] = { "cs_updateAvailable", "sc_noUpdateAvailable", "sc_doUpdate" } ; 
 ClientServerComms::ClientServerComms ( ) 
 {
-
 }
 
 void ClientServerComms::SendMessage ( int mq, message_buf *msg )
@@ -19,3 +19,7 @@ void ClientServerComms::SendMessage ( int mq, message_buf *msg )
      */
 }
 
+std::string ClientServerComms::GetMessageTypeString ( MessageType m )
+{
+    return MessageTypeString[m] ;
+}
